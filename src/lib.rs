@@ -31,5 +31,6 @@ impl Solution {
 }
 
 crate::aoc!(
-    day01
+    day01,
+    day02
 );
