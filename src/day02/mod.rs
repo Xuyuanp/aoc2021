@@ -1,24 +1,56 @@
 use std::num::ParseIntError;
 
 enum Move {
-    Vertical(i32),
+    Depth(i32),
     Horizental(i32),
 }
 
 struct Point {
-    x: i32,
-    y: i32,
+    horizental: i32,
+    depth: i32,
+}
+
+struct AimedPoint {
+    horizental: i32,
+    depth: i32,
+    aim: i32,
 }
 
 impl Point {
+    fn new() -> Self {
+        Point {
+            horizental: 0,
+            depth: 0,
+        }
+    }
     fn execute(&mut self, mv: Move) {
         match mv {
-            Move::Horizental(steps) => self.x += steps,
-            Move::Vertical(steps) => self.y += steps,
+            Move::Horizental(steps) => self.horizental += steps,
+            Move::Depth(steps) => self.depth += steps,
         }
     }
 }
 
+impl AimedPoint {
+    fn new() -> Self {
+        Self {
+            horizental: 0,
+            depth: 0,
+            aim: 0,
+        }
+    }
+    fn execute(&mut self, mv: Move) {
+        match mv {
+            Move::Horizental(steps) => {
+                self.horizental += steps;
+                self.depth += self.aim * steps;
+            }
+            Move::Depth(steps) => self.aim += steps,
+        }
+    }
+}
+
+// possible to return an iterator?
 fn parse_input(input: &Vec<String>) -> Result<Vec<Move>, ParseIntError> {
     input
         .iter()
@@ -28,9 +60,8 @@ fn parse_input(input: &Vec<String>) -> Result<Vec<Move>, ParseIntError> {
 
             Ok(match fields[0] {
                 "forward" => Move::Horizental(steps),
-                "backward" => Move::Horizental(-steps),
-                "up" => Move::Vertical(-steps),
-                "down" => Move::Vertical(steps),
+                "up" => Move::Depth(-steps),
+                "down" => Move::Depth(steps),
                 _ => panic!("unknown move"),
             })
         })
@@ -38,13 +69,17 @@ fn parse_input(input: &Vec<String>) -> Result<Vec<Move>, ParseIntError> {
 }
 
 pub fn part1(input: &Vec<String>) -> bool {
-    let mut pos = Point { x: 0, y: 0 };
+    let mut pos = Point::new();
     for mv in parse_input(input).unwrap() {
         pos.execute(mv);
     }
-    pos.x * pos.y == 1746616
+    pos.horizental * pos.depth == 1746616
 }
 
-pub fn part2(_input: &Vec<String>) -> bool {
-    false
+pub fn part2(input: &Vec<String>) -> bool {
+    let mut pos = AimedPoint::new();
+    for mv in parse_input(input).unwrap() {
+        pos.execute(mv);
+    }
+    pos.horizental * pos.depth == 1741971043
 }
