@@ -30,7 +30,4 @@ impl Solution {
     }
 }
 
-crate::aoc!(
-    day01,
-    day02
-);
+crate::aoc!(day01, day02, day03);
