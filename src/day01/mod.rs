@@ -11,12 +11,5 @@ pub fn part1(input: &Vec<String>) -> bool {
 
 pub fn part2(input: &Vec<String>) -> bool {
     let depths = parse_lines(input).unwrap();
-    depths
-        .windows(3)
-        .map(|x| x[0] + x[1] + x[2])
-        .collect::<Vec<u32>>()
-        .windows(2)
-        .filter(|x| x[1] > x[0])
-        .count()
-        == 1797
+    depths.windows(4).filter(|x| x[3] > x[0]).count() == 1797
 }
