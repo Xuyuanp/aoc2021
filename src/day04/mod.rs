@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::convert::TryInto;
 
 #[derive(Debug, Clone, Copy)]
@@ -59,7 +60,7 @@ impl Board {
         let sum_of_unmarked: i32 = self
             .rows
             .iter()
-            .map(|row| row.cols.iter().filter(|x| **x >= 0).sum::<i32>())
+            .map(|row| row.cols.iter().filter(|x| x >= &&0).sum::<i32>())
             .sum();
         sum_of_unmarked * num
     }
@@ -92,6 +93,23 @@ impl Bingo {
         }
         panic!("unreachable")
     }
+
+    fn play2(&mut self) -> (i32, usize) {
+        let mut boards: HashSet<usize> = (0..self.boards.len()).collect();
+        for num in self.nums.iter() {
+            for idx in boards.clone() {
+                if self.boards[idx].mark(*num) {
+                    if boards.len() == 1 {
+                        return (*num, idx);
+                    } else {
+                        boards.remove(&idx);
+                    }
+                }
+            }
+        }
+
+        panic!("unreachable")
+    }
 }
 
 pub fn part1(input: &Vec<String>) -> bool {
@@ -103,6 +121,11 @@ pub fn part1(input: &Vec<String>) -> bool {
     res == 67716
 }
 
-pub fn part2(_input: &Vec<String>) -> bool {
-    false
+pub fn part2(input: &Vec<String>) -> bool {
+    let mut bingo = Bingo::new(input);
+    let (num, winner) = bingo.play2();
+
+    let res = bingo.boards[winner].score(num);
+
+    res == 1830
 }
