@@ -19,6 +19,52 @@ pub fn part1(input: &Vec<String>) -> bool {
     gamma * epsilon == 2498354
 }
 
-pub fn part2(_input: &Vec<String>) -> bool {
-    todo!()
+fn get_rate(input: &Vec<String>, idx: usize, most: bool) -> Vec<String> {
+    let cnt: i32 = input
+        .iter()
+        .map(|s| match s.chars().nth(idx).unwrap() {
+            '1' => 1,
+            '0' => -1,
+            _ => panic!("fuck"),
+        })
+        .sum();
+
+    let filtered: Vec<String> = input
+        .iter()
+        .filter(|s| {
+            let c = s.chars().nth(idx).unwrap();
+            c == '1' && cnt >= 0 && most
+                || c == '0' && cnt < 0 && most
+                || c == '1' && cnt < 0 && !most
+                || c == '0' && cnt >= 0 && !most
+        })
+        .map(String::clone)
+        .collect();
+
+    if filtered.len() == 1 {
+        filtered
+    } else {
+        get_rate(&filtered, idx + 1, most)
+    }
+}
+
+fn bits_to_int(bits: &String) -> u32 {
+    bits.chars().fold(0, |acc, c| {
+        acc << 1
+            | match c {
+                '0' => 0,
+                '1' => 1,
+                _ => panic!("fuck"),
+            }
+    })
+}
+
+pub fn part2(input: &Vec<String>) -> bool {
+    let oxs = get_rate(input, 0, true);
+    let co2s = get_rate(input, 0, false);
+
+    let ox = bits_to_int(oxs.first().unwrap());
+    let co2 = bits_to_int(co2s.first().unwrap());
+
+    ox * co2 == 3277956
 }
