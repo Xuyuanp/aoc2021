@@ -27,9 +27,9 @@ impl Point {
             if self.0 > other.0 {
                 return other.cover(self);
             }
-            let dx: i32 = if self.0 < other.0 { 1 } else { -1 };
-            let dy: i32 = if self.1 < other.1 { 1 } else { -1 };
-            let dist = (self.0 as i32 - other.0 as i32).abs();
+            let dx = if self.0 < other.0 { 1 } else { -1 };
+            let dy = if self.1 < other.1 { 1 } else { -1 };
+            let dist = (self.0 - other.0).abs();
             (0..dist + 1)
                 .map(|i| Point(self.0 + i * dx, self.1 + i * dy))
                 .collect()
@@ -72,7 +72,7 @@ pub fn part2(input: &Vec<String>) -> bool {
         .filter(|(start, end)| {
             start.0 == end.0
                 || start.1 == end.1
-                || (start.0 as i32 - end.0 as i32).abs() == (start.1 as i32 - end.1 as i32).abs()
+                || (start.0 - end.0).abs() == (start.1 - end.1).abs()
         })
         .map(|(start, end)| start.cover(&end))
         .flatten()
