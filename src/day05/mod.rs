@@ -37,17 +37,42 @@ impl Point {
     }
 }
 
+struct Line {
+    start: Point,
+    end: Point,
+}
+
+impl Line {
+    fn new(s: &str) -> Self {
+        let seps: Vec<&str> = s.split(" -> ").collect();
+        let start = Point::new(seps[0]);
+        let end = Point::new(seps[1]);
+        Self { start, end }
+    }
+
+    fn is_vertical(&self) -> bool {
+        return self.start.1 == self.end.1;
+    }
+
+    fn is_horizental(&self) -> bool {
+        return self.start.0 == self.end.0;
+    }
+
+    fn is_diagonal(&self) -> bool {
+        return (self.start.0 - self.end.0).abs() == (self.start.1 - self.end.1).abs();
+    }
+
+    fn cover(&self) -> Vec<Point> {
+        self.start.cover(&self.end)
+    }
+}
+
 pub fn part1(input: &Vec<String>) -> bool {
     let all_points = input
         .iter()
-        .map(|s| {
-            let seps: Vec<&str> = s.split(" -> ").collect();
-            let start = Point::new(seps[0]);
-            let end = Point::new(seps[1]);
-            (start, end)
-        })
-        .filter(|(start, end)| start.0 == end.0 || start.1 == end.1)
-        .map(|(start, end)| start.cover(&end))
+        .map(|s| Line::new(s))
+        .filter(|line| line.is_vertical() || line.is_horizental())
+        .map(|line| line.cover())
         .flatten()
         .fold(HashMap::new(), |mut counter, p| {
             let x = counter.remove(&p).unwrap_or(0);
@@ -63,18 +88,9 @@ pub fn part1(input: &Vec<String>) -> bool {
 pub fn part2(input: &Vec<String>) -> bool {
     let all_points = input
         .iter()
-        .map(|s| {
-            let seps: Vec<&str> = s.split(" -> ").collect();
-            let start = Point::new(seps[0]);
-            let end = Point::new(seps[1]);
-            (start, end)
-        })
-        .filter(|(start, end)| {
-            start.0 == end.0
-                || start.1 == end.1
-                || (start.0 - end.0).abs() == (start.1 - end.1).abs()
-        })
-        .map(|(start, end)| start.cover(&end))
+        .map(|s| Line::new(s))
+        .filter(|line| line.is_horizental() || line.is_vertical() || line.is_diagonal())
+        .map(|line| line.cover())
         .flatten()
         .fold(HashMap::new(), |mut counter, p| {
             let x = counter.remove(&p).unwrap_or(0);
