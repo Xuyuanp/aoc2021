@@ -1,39 +1,39 @@
 use std::collections::HashMap;
+use std::num::ParseIntError;
+use std::str::FromStr;
 
 #[derive(Debug, PartialEq, Eq, Hash)]
 struct Point(i32, i32);
 
-impl Point {
-    fn new(s: &str) -> Self {
+impl FromStr for Point {
+    type Err = ParseIntError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
         let seps: Vec<&str> = s.split(",").collect();
-        let x = seps[0].parse().unwrap();
-        let y = seps[1].parse().unwrap();
+        let x = seps[0].parse()?;
+        let y = seps[1].parse()?;
 
-        Self(x, y)
+        Ok(Self(x, y))
     }
+}
 
+impl Point {
     fn cover(&self, other: &Point) -> Vec<Self> {
-        if self.0 == other.0 {
-            if self.1 > other.1 {
-                return other.cover(self);
+        let delta = |a, b| -> i32 {
+            if a == b {
+                0
+            } else {
+                let d: i32 = a - b;
+                -(d.abs() / d)
             }
-            (self.1..other.1 + 1).map(|y| Point(self.0, y)).collect()
-        } else if self.1 == other.1 {
-            if self.0 > other.0 {
-                return other.cover(self);
-            }
-            (self.0..other.0 + 1).map(|x| Point(x, self.1)).collect()
-        } else {
-            if self.0 > other.0 {
-                return other.cover(self);
-            }
-            let dx = if self.0 < other.0 { 1 } else { -1 };
-            let dy = if self.1 < other.1 { 1 } else { -1 };
-            let dist = (self.0 - other.0).abs();
-            (0..dist + 1)
-                .map(|i| Point(self.0 + i * dx, self.1 + i * dy))
-                .collect()
-        }
+        };
+        let dx = delta(self.0, other.0);
+        let dy = delta(self.1, other.1);
+
+        let dist = (self.0 - other.0).abs().max((self.1 - other.1).abs());
+        (0..dist + 1)
+            .map(|i| Point(self.0 + i * dx, self.1 + i * dy))
+            .collect()
     }
 }
 
@@ -42,14 +42,18 @@ struct Line {
     end: Point,
 }
 
-impl Line {
-    fn new(s: &str) -> Self {
-        let seps: Vec<&str> = s.split(" -> ").collect();
-        let start = Point::new(seps[0]);
-        let end = Point::new(seps[1]);
-        Self { start, end }
-    }
+impl FromStr for Line {
+    type Err = ParseIntError;
 
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let seps: Vec<&str> = s.split(" -> ").collect();
+        let start = seps[0].parse()?;
+        let end = seps[1].parse()?;
+        Ok(Self { start, end })
+    }
+}
+
+impl Line {
     fn is_vertical(&self) -> bool {
         return self.start.1 == self.end.1;
     }
@@ -70,7 +74,7 @@ impl Line {
 pub fn part1(input: &Vec<String>) -> bool {
     let all_points = input
         .iter()
-        .map(|s| Line::new(s))
+        .map(|s| s.parse::<Line>().unwrap())
         .filter(|line| line.is_vertical() || line.is_horizental())
         .map(|line| line.cover())
         .flatten()
@@ -88,7 +92,7 @@ pub fn part1(input: &Vec<String>) -> bool {
 pub fn part2(input: &Vec<String>) -> bool {
     let all_points = input
         .iter()
-        .map(|s| Line::new(s))
+        .map(|s| s.parse::<Line>().unwrap())
         .filter(|line| line.is_horizental() || line.is_vertical() || line.is_diagonal())
         .map(|line| line.cover())
         .flatten()
