@@ -1,7 +1,7 @@
 use std::num::ParseIntError;
 
 fn parse_lines(input: &Vec<String>) -> Result<Vec<u32>, ParseIntError> {
-    input.iter().map(|s| Ok(s.parse()?)).collect()
+    input.iter().map(|s| s.parse()).collect()
 }
 
 pub fn part1(input: &Vec<String>) -> bool {
