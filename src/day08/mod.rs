@@ -1,4 +1,5 @@
-use std::{collections::HashMap, convert::TryInto};
+use std::collections::HashMap;
+use std::convert::TryInto;
 
 pub fn part1(input: &Vec<String>) -> bool {
     let cnt = input
