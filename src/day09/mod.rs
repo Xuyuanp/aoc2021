@@ -74,13 +74,10 @@ pub fn part2(input: &Vec<String>) -> bool {
                     .iter()
                     .map(|(dx, dy)| (i as i32 + dx, j as i32 + dy))
                     .filter(|(x, y)| {
-                        x >= &0
-                            && x < &100
-                            && y >= &0
-                            && y < &100
-                            && matrix[*x as usize][*y as usize] > curr
-                            && matrix[*x as usize][*y as usize] < '9'
-                            && visited.insert((*x, *y))
+                        matrix
+                            .get(*x as usize)
+                            .and_then(|row| row.get(*y as usize))
+                            .map_or(false, |v| v < &'9' && v > &curr && visited.insert((*x, *y)))
                     })
                     .for_each(|(x, y)| {
                         queue.push_back((x, y));
@@ -91,8 +88,7 @@ pub fn part2(input: &Vec<String>) -> bool {
         })
         .collect::<Vec<i32>>();
 
-    basins.sort_by_key(|v| -v);
-
+    basins.select_nth_unstable_by_key(3, |v| -v);
     let res = basins.iter().take(3).fold(1, |acc, v| acc * v);
 
     res == 1050192
