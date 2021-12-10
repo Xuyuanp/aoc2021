@@ -18,10 +18,13 @@ pub fn part1(input: &Vec<String>) -> bool {
 
             [(0, 1), (0, -1), (1, 0), (-1, 0)]
                 .iter()
-                .map(|(dx, dy)| (i + dx, j + dy))
-                .filter(|(x, y)| x >= &0 && x < &100 && y >= &0 && y < &100)
-                .map(|(x, y)| matrix[x as usize][y as usize])
-                .filter(|v| v <= &curr)
+                .map(|(dx, dy)| (*i + dx, *j + dy))
+                .filter(|(x, y)| {
+                    matrix
+                        .get(*x as usize)
+                        .and_then(|row| row.get(*y as usize))
+                        .map_or(false, |v| v <= &curr)
+                })
                 .count()
                 == 0
         })
@@ -50,10 +53,13 @@ pub fn part2(input: &Vec<String>) -> bool {
 
             [(0, 1), (0, -1), (1, 0), (-1, 0)]
                 .iter()
-                .map(|(dx, dy)| (*i as i32 + dx, *j as i32 + dy))
-                .filter(|(x, y)| x >= &0 && x < &100 && y >= &0 && y < &100)
-                .map(|(x, y)| matrix[x as usize][y as usize])
-                .filter(|v| v <= &curr)
+                .map(|(dx, dy)| (*i + dx, *j + dy))
+                .filter(|(x, y)| {
+                    matrix
+                        .get(*x as usize)
+                        .and_then(|row| row.get(*y as usize))
+                        .map_or(false, |v| v <= &curr)
+                })
                 .count()
                 == 0
         })
@@ -72,7 +78,7 @@ pub fn part2(input: &Vec<String>) -> bool {
 
                 [(0, 1), (0, -1), (1, 0), (-1, 0)]
                     .iter()
-                    .map(|(dx, dy)| (i as i32 + dx, j as i32 + dy))
+                    .map(|(dx, dy)| (i + dx, j + dy))
                     .filter(|(x, y)| {
                         matrix
                             .get(*x as usize)
