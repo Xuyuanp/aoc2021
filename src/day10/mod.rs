@@ -58,15 +58,10 @@ pub fn part2(input: &Vec<String>) -> bool {
             })
         })
         .flatten()
-        .filter(|s| s.len() > 0)
-        .map(|mut s| {
-            let mut score = 0;
-
-            while let Some(left) = s.pop_back() {
-                score = score * 5 + scores.get(&left).unwrap()
-            }
-
-            score
+        .map(|s| {
+            s.iter()
+                .rev()
+                .fold(0, |acc, left| acc * 5 + scores.get(left).unwrap())
         })
         .collect::<Vec<u64>>();
 
