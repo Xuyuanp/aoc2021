@@ -32,6 +32,45 @@ pub fn part1(input: &Vec<String>) -> bool {
     score == 339477
 }
 
-pub fn part2(_input: &Vec<String>) -> bool {
-    unimplemented!();
+pub fn part2(input: &Vec<String>) -> bool {
+    let pairs = HashMap::from([(')', '('), (']', '['), ('}', '{'), ('>', '<')]);
+    let scores = HashMap::from([('(', 1), ('[', 2), ('{', 3), ('<', 4)]);
+
+    let mut res = input
+        .iter()
+        .map(|line| {
+            line.chars().fold(Some(VecDeque::new()), |acc, c| {
+                let mut stack = acc?;
+                match c {
+                    '(' | '[' | '{' | '<' => {
+                        stack.push_back(c);
+                        Some(stack)
+                    }
+                    _ => {
+                        let left = pairs.get(&c).expect("unknown right");
+                        if Some(*left) == stack.pop_back() {
+                            Some(stack)
+                        } else {
+                            None
+                        }
+                    }
+                }
+            })
+        })
+        .flatten()
+        .filter(|s| s.len() > 0)
+        .map(|mut s| {
+            let mut score = 0;
+
+            while let Some(left) = s.pop_back() {
+                score = score * 5 + scores.get(&left).unwrap()
+            }
+
+            score
+        })
+        .collect::<Vec<u64>>();
+
+    res.sort();
+    let score = res[res.len() / 2];
+    score == 3049320156
 }
