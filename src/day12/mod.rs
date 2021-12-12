@@ -56,9 +56,7 @@ fn dfs(graph: &HashMap<String, Vec<String>>, cave: String, visited: &mut HashSet
 pub fn part1(input: &Vec<String>) -> bool {
     let graph = parse_input(input);
 
-    let mut visited = HashSet::new();
-
-    let res = dfs(&graph, "start".to_string(), &mut visited);
+    let res = dfs(&graph, "start".to_string(), &mut HashSet::new());
 
     res == 3510
 }
@@ -88,14 +86,8 @@ fn dfs2(
         }
     }
 
-    if is_small {
-        if let Some(c) = twice {
-            if c != &cave {
-                visited.remove(&cave);
-            }
-        } else {
-            visited.remove(&cave);
-        }
+    if is_small && twice.map_or(true, |c| c != &cave) {
+        visited.remove(&cave);
     }
 
     res
@@ -104,8 +96,7 @@ fn dfs2(
 pub fn part2(input: &Vec<String>) -> bool {
     let graph = parse_input(input);
 
-    let mut visited = HashSet::new();
-    let res = dfs2(&graph, "start".to_string(), &mut visited, None);
+    let res = dfs2(&graph, "start".to_string(), &mut HashSet::new(), None);
 
     res == 122880
 }
