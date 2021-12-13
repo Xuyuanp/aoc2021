@@ -7,19 +7,17 @@ fn parse_input(input: &Vec<String>) -> HashMap<String, Vec<String>> {
         let seps: Vec<&str> = line.split("-").collect();
 
         if seps[1] != "start" {
-            if let Some(caves) = graph.get_mut(seps[0]) {
-                caves.push(seps[1].to_string());
-            } else {
-                graph.insert(seps[0].to_string(), vec![seps[1].to_string()]);
-            }
+            graph
+                .entry(seps[0].to_string())
+                .or_insert(vec![])
+                .push(seps[1].to_string());
         }
 
         if seps[0] != "start" {
-            if let Some(caves) = graph.get_mut(seps[1]) {
-                caves.push(seps[0].to_string());
-            } else {
-                graph.insert(seps[1].to_string(), vec![seps[0].to_string()]);
-            }
+            graph
+                .entry(seps[1].to_string())
+                .or_insert(vec![])
+                .push(seps[0].to_string());
         }
     });
 
