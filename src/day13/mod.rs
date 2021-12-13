@@ -69,24 +69,24 @@ impl Fold {
 }
 
 fn parse_input(input: &Vec<String>) -> (Vec<Point>, Vec<Fold>) {
-    let mut points = Vec::new();
-    let mut folds = Vec::new();
-    let mut is_points = true;
-    for line in input {
-        if line.is_empty() {
-            is_points = false;
-        } else if is_points {
-            points.push(line.parse().unwrap());
-        } else {
-            folds.push(
-                line.split_whitespace()
-                    .nth_back(0)
-                    .unwrap()
-                    .parse()
-                    .unwrap(),
-            );
-        }
-    }
+    let points = input
+        .iter()
+        .take_while(|line| !line.is_empty())
+        .map(|line| line.parse().unwrap())
+        .collect();
+    let folds = input
+        .iter()
+        .rev()
+        .take_while(|line| !line.is_empty())
+        .map(|line| {
+            line.split_whitespace()
+                .nth_back(0)
+                .unwrap()
+                .parse()
+                .unwrap()
+        })
+        .collect::<Vec<_>>();
+    let folds = folds.into_iter().rev().collect();
 
     (points, folds)
 }
