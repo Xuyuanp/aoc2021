@@ -79,8 +79,7 @@ pub fn part1(input: &Vec<String>) -> bool {
         .map(|line| line.cover())
         .flatten()
         .fold(HashMap::new(), |mut counter, p| {
-            let x = counter.remove(&p).unwrap_or(0);
-            counter.insert(p, x + 1);
+            *counter.entry(p).or_insert(0) += 1;
             counter
         })
         .iter()
@@ -97,8 +96,7 @@ pub fn part2(input: &Vec<String>) -> bool {
         .map(|line| line.cover())
         .flatten()
         .fold(HashMap::new(), |mut counter, p| {
-            let x = counter.remove(&p).unwrap_or(0);
-            counter.insert(p, x + 1);
+            *counter.entry(p).or_insert(0) += 1;
             counter
         })
         .iter()

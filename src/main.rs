@@ -28,17 +28,13 @@ fn main() {
 
     match env::args().nth(1) {
         Some(day) => {
-            if day.eq("all") {
+            if day == "all" {
                 println!("Run all days");
                 for (day, sol) in solutions.iter() {
                     run_fn(day, sol);
                 }
             } else {
-                let day = if let Ok(day) = day.parse::<u32>() {
-                    format!("day{:02}", day)
-                } else {
-                    day
-                };
+                let day = day.parse::<u32>().map_or(day, |d| format!("day{:02}", d));
                 if let Some(sol) = solutions.get(&day) {
                     run_fn(&day, sol);
                 } else {

@@ -3,9 +3,9 @@ pub fn part1(input: &Vec<String>) -> bool {
         .split(",")
         .map(|s| s.parse::<i32>().unwrap())
         .collect();
-    positions.sort();
-    let median = positions[positions.len() / 2];
-    let fuel = positions.iter().map(|p| (p - median).abs()).sum::<i32>();
+    let len = positions.len();
+    let median = *positions.select_nth_unstable(len / 2).1;
+    let fuel = positions.iter().map(|p| (median - p).abs()).sum::<i32>();
     fuel == 349812
 }
 

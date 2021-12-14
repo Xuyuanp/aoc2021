@@ -38,22 +38,22 @@ impl Board {
     }
 
     fn mark(&mut self, val: i32) -> bool {
-        for i in 0..5 {
-            for j in 0..5 {
-                if self.rows[i].cols[j] == val {
-                    self.rows[i].cols[j] -= 1000;
-                    return self.rows[i].cols.iter().filter(|x| x >= &&0).count() == 0
-                        || self
-                            .rows
-                            .iter()
-                            .map(|row| row.cols[j])
-                            .filter(|x| x >= &0)
-                            .count()
-                            == 0;
-                }
-            }
-        }
-        false
+        (0..5 as usize)
+            .map(move |i| (0..5 as usize).map(move |j| (i, j)))
+            .flatten()
+            .filter(|(i, j)| self.rows[*i].cols[*j] == val)
+            .next()
+            .map_or(false, |(i, j)| {
+                self.rows[i].cols[j] -= 1000;
+                self.rows[i].cols.iter().filter(|x| x >= &&0).count() == 0
+                    || self
+                        .rows
+                        .iter()
+                        .map(|row| row.cols[j])
+                        .filter(|x| x >= &0)
+                        .count()
+                        == 0
+            })
     }
 
     fn score(&self, num: i32) -> i32 {
