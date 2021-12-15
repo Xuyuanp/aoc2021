@@ -20,14 +20,14 @@ fn parse_input(input: &Vec<String>) -> [[u8; N]; N] {
     matrix
 }
 
-fn get_lowest_risk(matrix: &mut [[u8; N]; N]) -> usize {
+fn get_lowest_risk<const H: usize, const W: usize>(matrix: &mut [[u8; H]; W]) -> usize {
     let mut heap = BinaryHeap::new();
 
     let start = (0 as usize, 0 as usize);
     heap.push((Reverse(0), start));
 
     while let Some((Reverse(risk), (x, y))) = heap.pop() {
-        if (x, y) == (N - 1, N - 1) {
+        if (x, y) == (H - 1, W - 1) {
             return risk;
         }
         // FIXME: how to find all neighbors?
@@ -38,7 +38,7 @@ fn get_lowest_risk(matrix: &mut [[u8; N]; N]) -> usize {
             (Some(x), Some(y + 1)),
         ] {
             if let (Some(i), Some(j)) = neighbor {
-                if i < N && j < N && matrix[i][j] > 0 {
+                if i < H && j < W && matrix[i][j] > 0 {
                     let new_risk = risk + (matrix[i][j] as usize);
                     heap.push((Reverse(new_risk), (i, j)));
                     matrix[i][j] = 0;
@@ -56,6 +56,22 @@ pub fn part1(input: &Vec<String>) -> bool {
     res == 745
 }
 
-pub fn part2(_input: &Vec<String>) -> bool {
-    unimplemented!();
+pub fn part2(input: &Vec<String>) -> bool {
+    let matrix = parse_input(input);
+    const SCALE: usize = 5;
+    let mut full_matrix = [[0; N * SCALE]; N * SCALE];
+    for i in 0..SCALE {
+        for j in 0..SCALE {
+            for x in 0..N {
+                for y in 0..N {
+                    let delta = (i + j) % 9;
+                    let ori = matrix[x][y] as usize;
+                    let new = (ori + delta - 1) % 9 + 1;
+                    full_matrix[i * N + x][j * N + y] = new as u8;
+                }
+            }
+        }
+    }
+    let res = get_lowest_risk(&mut full_matrix);
+    res == 3002
 }
