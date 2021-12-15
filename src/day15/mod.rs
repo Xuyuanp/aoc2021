@@ -4,23 +4,23 @@ use std::convert::TryInto;
 
 const N: usize = 100;
 
-fn parse_input(input: &Vec<String>) -> [[u8; N]; N] {
-    let matrix: [[u8; N]; N] = input
+fn parse_input<const H: usize, const W: usize>(input: &Vec<String>) -> [[u8; W]; H] {
+    let matrix: [[u8; W]; H] = input
         .iter()
         .map(|line| {
             line.chars()
                 .map(|c| c as u8 - b'0')
-                .collect::<Vec<u8>>()
+                .collect::<Vec<_>>()
                 .try_into()
                 .unwrap()
         })
-        .collect::<Vec<[u8; N]>>()
+        .collect::<Vec<_>>()
         .try_into()
         .unwrap();
     matrix
 }
 
-fn get_lowest_risk<const H: usize, const W: usize>(matrix: &mut [[u8; H]; W]) -> usize {
+fn get_lowest_risk<const H: usize, const W: usize>(matrix: &mut [[u8; W]; H]) -> usize {
     let mut heap = BinaryHeap::new();
 
     let start = (0 as usize, 0 as usize);
@@ -50,14 +50,14 @@ fn get_lowest_risk<const H: usize, const W: usize>(matrix: &mut [[u8; H]; W]) ->
 }
 
 pub fn part1(input: &Vec<String>) -> bool {
-    let mut matrix = parse_input(input);
+    let mut matrix = parse_input::<N, N>(input);
     let res = get_lowest_risk(&mut matrix);
 
     res == 745
 }
 
 pub fn part2(input: &Vec<String>) -> bool {
-    let matrix = parse_input(input);
+    let matrix = parse_input::<N, N>(input);
     const SCALE: usize = 5;
     let mut full_matrix = [[0; N * SCALE]; N * SCALE];
     for i in 0..SCALE {
