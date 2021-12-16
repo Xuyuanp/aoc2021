@@ -3,12 +3,12 @@ use std::collections::HashMap;
 #[derive(Debug, PartialEq, Eq)]
 enum Packet {
     Literal {
-        version: u8,
+        version: usize,
         val: usize,
     },
     Operator {
-        version: u8,
-        type_id: u8,
+        version: usize,
+        type_id: usize,
         sub_packets: Vec<Packet>,
     },
 }
@@ -30,28 +30,26 @@ impl Packet {
     }
 
     fn decode_one(bits: &Vec<Bit>) -> (Self, usize) {
-        let fold_fn = |acc, b| acc << 1 | b;
+        let fold_fn = |acc, b: &u8| acc << 1 | (*b as usize);
         let version = bits[0..3].iter().fold(0, fold_fn);
         let type_id = bits[3..6].iter().fold(0, fold_fn);
         match type_id {
             4 => {
-                let start = 6;
-                let mut groups = Vec::new();
-                while bits[start + groups.len() * 5] == 1 {
-                    let left = start + groups.len() * 5;
+                let mut val = 0;
+                let mut length = 6;
+
+                loop {
+                    let left = length;
                     let right = left + 5;
-                    let val = bits[left + 1..right].iter().fold(0, fold_fn);
-                    groups.push(val);
+                    let sub = bits[left + 1..right].iter().fold(0, fold_fn);
+
+                    val = val << 4 | sub;
+                    length += 5;
+
+                    if bits[left] == 0 {
+                        break;
+                    }
                 }
-
-                let left = start + groups.len() * 5;
-                let right = left + 5;
-                let val = bits[left + 1..right].iter().fold(0, fold_fn);
-                groups.push(val);
-
-                let length = start + groups.len() * 5;
-
-                let val = groups.iter().fold(0, |acc, x| acc << 4 | (*x as usize));
 
                 (Self::Literal { version, val }, length)
             }
@@ -62,14 +60,12 @@ impl Packet {
 
                 let (sub_packets, length) = match length_type_id {
                     0 => {
-                        let total_length = bits[start + 1..start + 16]
-                            .iter()
-                            .fold(0 as usize, |acc, b| acc << 1 | (*b as usize));
+                        let total_length = bits[start + 1..start + 16].iter().fold(0, fold_fn);
                         let sub_bits = bits[start + 16..start + 16 + total_length]
                             .iter()
                             .map(|c| *c)
                             .collect::<Vec<_>>();
-                        (Self::decode(sub_bits), 6 + 1 + 15 + total_length)
+                        (Self::decode(sub_bits), start + 1 + 15 + total_length)
                     }
                     1 => {
                         let nums = bits[start + 1..start + 12].iter().fold(0, fold_fn);
@@ -86,7 +82,7 @@ impl Packet {
 
                         (sub_packets, length)
                     }
-                    _ => unreachable!(),
+                    _ => unreachable!("unknown length type id: {}", length_type_id),
                 };
 
                 (
@@ -103,18 +99,18 @@ impl Packet {
 
     fn get_version(&self) -> usize {
         match self {
-            &Packet::Literal { version, .. } => version as usize,
+            &Packet::Literal { version, .. } => version,
             &Packet::Operator {
                 version,
                 ref sub_packets,
                 ..
-            } => version as usize + sub_packets.iter().map(Self::get_version).sum::<usize>(),
+            } => version + sub_packets.iter().map(Self::get_version).sum::<usize>(),
         }
     }
 
     fn eval(&self) -> usize {
         match self {
-            &Packet::Literal { val, .. } => val as usize,
+            &Packet::Literal { val, .. } => val,
             &Packet::Operator {
                 type_id,
                 ref sub_packets,
@@ -160,7 +156,7 @@ impl Packet {
                         0
                     }
                 }
-                _ => unreachable!(),
+                _ => unreachable!("unknown type_id: {}", type_id),
             },
         }
     }
