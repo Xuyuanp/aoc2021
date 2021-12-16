@@ -35,7 +35,6 @@ impl Packet {
         let type_id = bits[3..6].iter().fold(0, fold_fn);
         match type_id {
             4 => {
-                // println!("decode literal: {}", version);
                 let start = 6;
                 let mut groups = Vec::new();
                 while bits[start + groups.len() * 5] == 1 {
@@ -60,17 +59,12 @@ impl Packet {
                 let start = 6;
 
                 let length_type_id = bits[start];
-                // println!(
-                //     "decode operator: {} {} {}",
-                //     version, type_id, length_type_id
-                // );
 
                 let (sub_packets, length) = match length_type_id {
                     0 => {
                         let total_length = bits[start + 1..start + 16]
                             .iter()
                             .fold(0 as usize, |acc, b| acc << 1 | (*b as usize));
-                        // println!("type 0: {}", total_length);
                         let sub_bits = bits[start + 16..start + 16 + total_length]
                             .iter()
                             .map(|c| *c)
@@ -79,7 +73,6 @@ impl Packet {
                     }
                     1 => {
                         let nums = bits[start + 1..start + 12].iter().fold(0, fold_fn);
-                        // println!("sub_packets: {}", nums);
                         let mut sub_packets = Vec::new();
                         let mut length = 6 + 12;
 
@@ -118,6 +111,59 @@ impl Packet {
             } => version as usize + sub_packets.iter().map(Self::get_version).sum::<usize>(),
         }
     }
+
+    fn eval(&self) -> usize {
+        match self {
+            &Packet::Literal { val, .. } => val as usize,
+            &Packet::Operator {
+                type_id,
+                ref sub_packets,
+                ..
+            } => match type_id {
+                0 => sub_packets.iter().fold(0, |acc, p| acc + p.eval()),
+                1 => sub_packets.iter().fold(1, |acc, p| acc * p.eval()),
+                2 => sub_packets.iter().map(Self::eval).min().unwrap(),
+                3 => sub_packets.iter().map(Self::eval).max().unwrap(),
+                5 => {
+                    assert_eq!(
+                        sub_packets.len(),
+                        2,
+                        "greater than operator always has two sub packets"
+                    );
+                    if sub_packets[0].eval() > sub_packets[1].eval() {
+                        1
+                    } else {
+                        0
+                    }
+                }
+                6 => {
+                    assert_eq!(
+                        sub_packets.len(),
+                        2,
+                        "less than operator always has two sub packets"
+                    );
+                    if sub_packets[0].eval() < sub_packets[1].eval() {
+                        1
+                    } else {
+                        0
+                    }
+                }
+                7 => {
+                    assert_eq!(
+                        sub_packets.len(),
+                        2,
+                        "equal to operator always has two sub packets"
+                    );
+                    if sub_packets[0].eval() == sub_packets[1].eval() {
+                        1
+                    } else {
+                        0
+                    }
+                }
+                _ => unreachable!(),
+            },
+        }
+    }
 }
 
 type Bit = u8;
@@ -144,7 +190,7 @@ fn get_bitsmap() -> HashMap<char, [Bit; 4]> {
     ])
 }
 
-pub fn part1(input: &Vec<String>) -> bool {
+fn parse_input(input: &Vec<String>) -> Vec<Packet> {
     let bitsmap = get_bitsmap();
     let bits: Vec<Bit> = input[0]
         .chars()
@@ -153,15 +199,23 @@ pub fn part1(input: &Vec<String>) -> bool {
         .map(|b| *b)
         .collect::<Vec<_>>();
 
-    let packets = Packet::decode(bits);
+    Packet::decode(bits)
+}
+
+pub fn part1(input: &Vec<String>) -> bool {
+    let packets = parse_input(input);
 
     let res: usize = packets.iter().map(Packet::get_version).sum();
 
     res == 871
 }
 
-pub fn part2(_input: &Vec<String>) -> bool {
-    unimplemented!();
+pub fn part2(input: &Vec<String>) -> bool {
+    let packets = parse_input(input);
+    assert_eq!(packets.len(), 1, "only one root packet expected");
+    let res = packets[0].eval();
+
+    res == 68703010504
 }
 
 #[cfg(test)]
