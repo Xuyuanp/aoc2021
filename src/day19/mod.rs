@@ -21,6 +21,7 @@ struct Point(i32, i32, i32);
 #[derive(Debug, Hash, PartialEq, Eq, Clone)]
 struct Scanner {
     id: u32,
+    position: Option<Point>,
     beacons: Vec<Point>,
 }
 
@@ -47,6 +48,14 @@ impl Sub for Point {
     }
 }
 
+impl Point {
+    fn manhattan_dist(&self, other: &Self) -> u32 {
+
+        (self.0-other.0).abs() as u32 + (self.1-other.1).abs() as u32 + (self.2-other.2).abs() as u32
+        // self.0.abs_diff(other.0) + self.1.abs_diff(other.1) + self.2.abs_diff(other.2)
+    }
+}
+
 fn parse_input(input: &Vec<String>) -> Result<Vec<Scanner>, ParseError> {
     let mut scanners = Vec::new();
 
@@ -61,7 +70,14 @@ fn parse_input(input: &Vec<String>) -> Result<Vec<Scanner>, ParseError> {
                 _ => beacons.push(line.parse()?),
             }
         }
-        scanners.push(Scanner { id: idx, beacons });
+        scanners.push(Scanner {
+            id: idx,
+            position: match idx {
+                0 => Some(Point(0, 0, 0)),
+                _ => None,
+            },
+            beacons,
+        });
         idx += 1;
     }
 
@@ -90,6 +106,7 @@ fn guess_one(
         let Point(x, y, z) = ent.0;
         return Some(Scanner {
             id: s.id,
+            position: Some(*ent.0),
             beacons: s
                 .beacons
                 .iter()
@@ -169,6 +186,22 @@ pub fn part1(input: &Vec<String>) -> bool {
     res == 472
 }
 
-pub fn part2(_input: &Vec<String>) -> bool {
-    unimplemented!()
+pub fn part2(input: &Vec<String>) -> bool {
+    let scanners = parse_input(input).unwrap();
+    let knowns = resolve(&scanners);
+
+    let mut res = u32::MIN;
+    for i in 0..knowns.len() {
+        for j in 0..knowns.len() {
+            if i == j {
+                continue;
+            }
+            let pos1 = knowns[i].position.unwrap();
+            let pos2 = knowns[j].position.unwrap();
+            let dist = pos1.manhattan_dist(&pos2);
+            res = res.max(dist);
+        }
+    }
+
+    res == 12092
 }
