@@ -50,9 +50,8 @@ impl Sub for Point {
 
 impl Point {
     fn manhattan_dist(&self, other: &Self) -> u32 {
-
-        (self.0-other.0).abs() as u32 + (self.1-other.1).abs() as u32 + (self.2-other.2).abs() as u32
-        // self.0.abs_diff(other.0) + self.1.abs_diff(other.1) + self.2.abs_diff(other.2)
+        let p = *self - *other;
+        p.0.abs() as u32 + p.1.abs() as u32 + p.2.abs() as u32
     }
 }
 
@@ -104,17 +103,18 @@ fn guess_one(
     }
     if let Some(ent) = counter.iter().filter(|ent| ent.1 >= &12).next() {
         let Point(x, y, z) = ent.0;
+        let beacons = s
+            .beacons
+            .iter()
+            .map(|p| {
+                let axises = [p.0, p.1, p.2];
+                Point(dx * axises[i] + x, dy * axises[j] + y, dz * axises[k] + z)
+            })
+            .collect();
         return Some(Scanner {
             id: s.id,
             position: Some(*ent.0),
-            beacons: s
-                .beacons
-                .iter()
-                .map(|p| {
-                    let axises = [p.0, p.1, p.2];
-                    Point(dx * axises[i] + x, dy * axises[j] + y, dz * axises[k] + z)
-                })
-                .collect(),
+            beacons,
         });
     }
     None
