@@ -75,15 +75,7 @@ impl Number {
     }
 
     fn reduce(mut self) -> Self {
-        loop {
-            if self.try_explode(0).0 {
-                continue;
-            }
-            if self.try_split() {
-                continue;
-            }
-            break;
-        }
+        while self.try_explode(0).0 || self.try_split() {}
         self
     }
 
@@ -91,9 +83,7 @@ impl Number {
         match self {
             Self::Regular(_) => (false, None, None),
             Self::Pair(lhs, rhs) => {
-                let lhs_ref: &Number = lhs;
-                let rhs_ref: &Number = rhs;
-                if let (Self::Regular(l), Self::Regular(r)) = (lhs_ref, rhs_ref) {
+                if let (Self::Regular(l), Self::Regular(r)) = (lhs.as_ref(), rhs.as_ref()) {
                     if depth >= 4 {
                         let (l, r) = (*l, *r);
                         *self = Self::Regular(0);
