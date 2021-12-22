@@ -1,5 +1,7 @@
 use std::cmp::{max, min};
-use std::{collections::HashSet, num::ParseIntError, str::FromStr};
+use std::collections::{HashMap, HashSet};
+use std::num::ParseIntError;
+use std::str::FromStr;
 
 #[derive(Debug)]
 struct Step {
@@ -9,15 +11,12 @@ struct Step {
 
 type Range = std::ops::RangeInclusive<isize>;
 
-#[derive(Debug)]
+#[derive(Debug, Hash, Clone, PartialEq, Eq)]
 struct Region {
     x: Range,
     y: Range,
     z: Range,
 }
-
-#[derive(Debug)]
-struct Point(isize, isize, isize);
 
 impl FromStr for Region {
     type Err = ParseIntError;
@@ -38,6 +37,15 @@ impl FromStr for Region {
         let z = xyz.next().unwrap()?;
 
         Ok(Self { x, y, z })
+    }
+}
+
+impl Region {
+    fn count(&self) -> usize {
+        let x = (self.x.end() - self.x.start() + 1) as usize;
+        let y = (self.y.end() - self.y.start() + 1) as usize;
+        let z = (self.z.end() - self.z.start() + 1) as usize;
+        x * y * z
     }
 }
 
@@ -80,6 +88,45 @@ pub fn part1(input: &Vec<String>) -> bool {
     res == 580810
 }
 
-pub fn part2(_input: &Vec<String>) -> bool {
-    unimplemented!()
+fn intersaction_range(r1: &Range, r2: &Range) -> Option<Range> {
+    let start = max(r1.start(), r2.start());
+    let end = min(r1.end(), r2.end());
+    if start > end {
+        None
+    } else {
+        Some(*start..=*end)
+    }
+}
+
+fn intersaction(r1: &Region, r2: &Region) -> Option<Region> {
+    let x = intersaction_range(&r1.x, &r2.x)?;
+    let y = intersaction_range(&r1.y, &r2.y)?;
+    let z = intersaction_range(&r1.z, &r2.z)?;
+    Some(Region { x, y, z })
+}
+
+pub fn part2(input: &Vec<String>) -> bool {
+    let steps = parse_input(input).unwrap();
+
+    let mut counter = HashMap::new();
+
+    for step in steps {
+        let mut new_counter = counter.clone();
+
+        for (region, cnt) in counter {
+            if let Some(sub) = intersaction(&region, &step.region) {
+                *new_counter.entry(sub).or_insert(0) -= cnt;
+            }
+        }
+
+        if step.on {
+            *new_counter.entry(step.region).or_insert(0) += 1;
+        }
+
+        counter = new_counter;
+    }
+
+    let res: i64 = counter.iter().map(|(r, c)| r.count() as i64 * c).sum();
+
+    res == 1265621119006734
 }
